@@ -1,0 +1,28 @@
+name: Notify Telegram on Commit
+
+on:
+  push:
+    branches:
+      - main  # Укажи нужную ветку
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Send Telegram notification
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          COMMIT_SHA=$(git rev-parse HEAD)
+          if [ $? -eq 0 ]; then
+            MESSAGE="✅ Новый коммит: $COMMIT_SHA"
+          else
+            MESSAGE="❌ Коммит не удался"
+          fi
+          curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+            -d chat_id="$TELEGRAM_CHAT_ID" \
+            -d text="$MESSAGE"
